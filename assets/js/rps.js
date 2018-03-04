@@ -28,19 +28,17 @@ $(document).ready(function (event) {
     var hasPlyPicked = false;
     var ply = 0;
 
-    dbPlayers.once('value', function (snap) {
-        if (snap.hasChild('player1') && snap.hasChild('player2')) {
-            alert('There are players playing. Try again later');
-            $('.form-inline').hide();
-        }
+    $('button').on('click', function (event) {
+        player.name = $('#name').val().trim();
+        event.preventDefault();
 
-        $('button').on('click', function (event) {
-            player.name = $('#name').val().trim();
-            event.preventDefault();
-
-            if (!snap.hasChild('player1')) {
+        dbPlayers.once('value', function (snap) {
+            if (snap.hasChild('player1') && snap.hasChild('player2')) {
+                alert('There are players playing. Try again later');
+                $('.form-inline').hide();
+            }else if (!snap.hasChild('player1')) {
                 ply = 1;
-            } else if (!snap.hasChild('player2')) {
+            }else if (!snap.hasChild('player2')) {
                 ply = 2;
             }
             console.log(ply);
@@ -54,6 +52,9 @@ $(document).ready(function (event) {
                 loses: player.loses,
                 ties: player.ties
             });
+
+            $('.container').attr('style', 'dispaly:block');
+            $(`#ply${ply}Name`).html(player.name);
 
             ply === 1 ? $('.ply2').fadeTo(500, 0.5) : $('.ply1').fadeTo(500, 0.5);
 
