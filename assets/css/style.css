@@ -10,3 +10,18 @@
 		opacity: 0.5;
 	}
 }
+
+strong {
+	font-size: 1.25rem;
+}
+
+.alert {
+	width: 70%;
+	position: absolute;
+	top: 425px;
+	margin-left: auto;
+	margin-right: auto;
+	left: 0;
+	right: 0;
+	padding: 0;
+}
