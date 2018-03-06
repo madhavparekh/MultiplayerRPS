@@ -6,9 +6,6 @@ var player = {
 	loses: 0,
 	ties: 0,
 };
-
-const rpsMapping = ['rock', 'paper', 'scissors'];
-
 var plyRef = 'player';
 
 var config = {
@@ -34,49 +31,22 @@ $(document).ready(function (event) {
 		player.name = $('#name').val().trim();
 		event.preventDefault();
 
+		//hide enter name area
+		$('.form-inline').hide();
+
 		dbPlayers.once('value', function (snap) {
 			if (snap.hasChild('player1') && snap.hasChild('player2')) {
 				alert('There are players playing. Try again later');
-				$('.form-inline').hide();
+				return;
 			} else if (!snap.hasChild('player1')) {
 				ply = 1;
 			} else if (!snap.hasChild('player2')) {
 				ply = 2;
 			}
 
-			//on child added get name to display
-			dbPlayers.child(`player${3 - ply}`).on('child_added', function (snap) {
-					// console.log(snap.val());
-					if (snap.key === 'name') $(`#ply${3 - ply}Name`).html(snap.val());
-				},
-				function (errorObject) {
-					console.log('Errors handled: ' + errorObject.code);
-				}
-			);
-
-			//check if other player picked?
-			var ref = `player${3 - ply}/pick`;
-
-			dbPlayers.child(`player${3 - ply}/pick`).on('value', function (snap) {
-					console.log('line 59 ' + snap.val());
-					if (snap.val() < 3 && snap.val() >= 0 && snap.val() != null) {
-						console.log('line 61 ' + snap.val());
-						oppPicked = true;
-						if (hasPlyPicked) {
-							console.log('hasPicked');
-							console.log('checking winner from line 64');
-							dbPlayers.child(plyRef).update(checkWinner(snap.val()));
-						}
-						displayOppPick();
-
-					}
-				},
-				function (errorObject) {
-					console.log('Errors handled: ' + errorObject.code);
-				}
-			);
-
 			plyRef += ply;
+
+			listenForNodeChanges();
 
 			dbPlayers.child(plyRef).set({
 				name: player.name,
@@ -86,10 +56,14 @@ $(document).ready(function (event) {
 				ties: player.ties,
 			});
 
+			//show play area
 			$('.container').attr('style', 'dispaly:block');
+			//insert name in ply div
 			$(`#ply${ply}Name`).html(player.name);
+			//add class for pulse animation
 			$(`.ply${ply}`).addClass('pulse');
 
+			//fade opp player's images/area
 			ply === 1 ? $('.ply2').fadeTo(500, 0.5) : $('.ply1').fadeTo(500, 0.5);
 
 			$(`.image${ply}`).on('click', function (r) {
@@ -118,17 +92,53 @@ $(document).ready(function (event) {
 							}
 
 						});
-
-						displayOppPick();
 					}
-
 				}
 			});
 		});
 	});
-
-
 });
+
+function updateStats() {
+	$('#wins').html(player.wins);
+	$('#ties').html(player.ties);
+	$('#loses').html(player.loses);
+}
+
+function listenForNodeChanges() {
+	//on child added get name to display
+	dbPlayers.child(`player${3 - ply}/name`).on('value', function (snap) {
+			// console.log(snap.val());
+			$(`#ply${3 - ply}Name`).html(snap.val());
+
+			//on opp ply change, reset stats
+			player.wins = 0;
+			player.loses = 0;
+			player.ties = 0;
+			updateStats();
+		},
+		function (errorObject) {
+			console.log('Errors handled: ' + errorObject.code);
+		}
+	);
+	//listen on opp player's pick
+	dbPlayers.child(`player${3 - ply}/pick`).on('value', function (snap) {
+			console.log('line 59 ' + snap.val());
+			if (snap.val() < 3 && snap.val() >= 0 && snap.val() != null) {
+				console.log('line 61 ' + snap.val());
+				oppPicked = true;
+				if (hasPlyPicked) {
+					console.log('hasPicked');
+					console.log('checking winner from line 64');
+					dbPlayers.child(plyRef).update(checkWinner(snap.val()));
+				}
+			}
+		},
+		function (errorObject) {
+			console.log('Errors handled: ' + errorObject.code);
+		}
+	);
+}
 
 
 function displayOppPick() {
@@ -136,7 +146,7 @@ function displayOppPick() {
 
 		dbPlayers.child(`player${3 - ply}/pick`).once('value', function (snap) {
 
-			$(`#ply${3-ply}pick`).append(`Player ${3-ply}`, $(`#${snap.val()}`).clone());
+			$(`#ply${3-ply}pick`).append(`Player${3-ply}`, $(`#${snap.val()}`).clone());
 
 			$('#alertmsg').html(gameResult);
 
@@ -211,6 +221,8 @@ function checkWinner(oppPick) {
 		gameResult = 'You Win';
 		console.log('from: P');
 	}
+	displayOppPick();
+	updateStats();
 	return obj;
 }
 
