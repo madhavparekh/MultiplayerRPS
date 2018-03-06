@@ -24,10 +24,12 @@ var hasPlyPicked = false;
 var oppPicked = false;
 var ply = 0;
 var gameResult = '';
+var oppName = '';
+
 $('.alert').hide();
 
 $(document).ready(function (event) {
-	$('button').on('click', function (event) {
+	$('body').on('click', '#btn-name', function (event) {
 		player.name = $('#name').val().trim();
 		event.preventDefault();
 
@@ -47,6 +49,8 @@ $(document).ready(function (event) {
 			plyRef += ply;
 
 			listenForNodeChanges();
+			//turn on chat
+			chatListner();
 
 			dbPlayers.child(plyRef).set({
 				name: player.name,
@@ -65,22 +69,27 @@ $(document).ready(function (event) {
 
 			//fade opp player's images/area
 			ply === 1 ? $('.ply2').fadeTo(500, 0.5) : $('.ply1').fadeTo(500, 0.5);
-
+			//on player's pick/click
 			$(`.image${ply}`).on('click', function (r) {
+				console.log('clicked');
 				if (!hasPlyPicked) {
 					hasPlyPicked = true;
 
+					//clone clicked img to play area
 					$(`#ply${ply}pick`).append(`Player ${ply}`, $(r.target).clone());
+					//remove pulsating animation
 					$(`.ply${ply}`).removeClass('pulse');
 
+					//add pulsating animation to opp side
 					$(`.ply${3 - ply}`).addClass('pulse');
+					//fade player's area
 					$(`.ply${ply}`).fadeTo(1000, 0.3);
 
-					var updatePick = {
-						pick: $(r.target).attr('value')
-					};
+					//update remote Node
 					player.pick = $(r.target).attr('value');
-
+					var updatePick = {
+						pick: player.pick
+					};
 					dbPlayers.child(plyRef).update(updatePick);
 
 					if (oppPicked) {
@@ -95,9 +104,51 @@ $(document).ready(function (event) {
 					}
 				}
 			});
+
 		});
 	});
+
+	//on submit chat
+	$('body').on('click', '#btn-chat', function (e) {
+		// e.preventDefault();
+		var message = $('#btn-input').val()
+
+		console.log(message);
+
+		dbChat.child(plyRef).set({
+			msg: message
+		})
+		insertChat(player.name, message, 'text-primary');
+
+		$('#btn-input').val('');
+
+
+	});
+
 });
+
+function insertChat(name, msg, textColor) {
+	var chatDiv = $('<li>').addClass('p-0 m-0');
+	var chatMsg = $(`<p>`).addClass(`${textColor} p-0 m-0`).html(`<b>${name}: </b>${msg}`);
+	chatDiv.append(chatMsg);
+	$(`ul`).append(chatDiv);
+	$('.chatdisplay').scrollTop($('.chatdisplay').prop('scrollHeight'));
+}
+
+function chatListner() {
+	dbChat.child(`player${3 - ply}`).on('value', snap => {
+		try {
+			console.log(snap.val().msg);
+			insertChat(oppName, snap.val().msg, 'text-danger');
+		} catch (error) {
+			//console.error(error);
+		}
+
+	}, function (errObj) {
+		console.log(errObj.code);
+	})
+}
+
 
 function updateStats() {
 	$('#wins').html(player.wins);
@@ -106,10 +157,11 @@ function updateStats() {
 }
 
 function listenForNodeChanges() {
-	//on child added get name to display
+	//on other player's name change,get name to display
 	dbPlayers.child(`player${3 - ply}/name`).on('value', function (snap) {
 			// console.log(snap.val());
-			$(`#ply${3 - ply}Name`).html(snap.val());
+			oppName = snap.val();
+			$(`#ply${3 - ply}Name`).html(oppName);
 
 			//on opp ply change, reset stats
 			player.wins = 0;
@@ -152,7 +204,7 @@ function displayOppPick() {
 
 			setTimeout(e => {
 				$('.alert').show();
-			}, 1000)
+			}, 250)
 			setTimeout(e => {
 				resetGame();
 			}, 3000)
@@ -228,4 +280,6 @@ function checkWinner(oppPick) {
 
 window.onbeforeunload = function () {
 	dbPlayers.child(plyRef).remove();
+	dbChat.child(plyRef).remove();
+
 };
