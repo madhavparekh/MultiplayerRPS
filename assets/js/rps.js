@@ -94,12 +94,12 @@ $(document).ready(function (event) {
 			$(`.ply${ply}`).fadeTo(1000, 0.3);
 
 			//update remote Node
-			player.pick = $(r.target).attr('value');
-			var updatePick = {
-				pick: player.pick
-			};
-			dbPlayers.child(plyRef).update(updatePick);
+			player.pick = $(r.target).attr('alt').split(' ')[1];
 
+			dbPlayers.child(plyRef).update({
+				pick: player.pick
+			});
+			
 			if (oppPicked) {
 				dbPlayers.child(`player${3 - ply}/pick`).once('value', function (snap) {
 					console.log('line 114 ' + snap.val());
@@ -291,5 +291,6 @@ function checkWinner(oppPick) {
 window.onbeforeunload = function () {
 	dbPlayers.child(plyRef).remove();
 	dbChat.child(plyRef).remove();
-
+	$('.container').hide();
+	$('.form-inline').show();
 };
