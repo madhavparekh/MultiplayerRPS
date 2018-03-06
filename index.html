@@ -24,7 +24,7 @@
             <label for="name" class="sr-only">Name</label>
             <input type="text" class="form-control" id="name" placeholder="Enter Your Name">
         </div>
-        <button type="submit" class="btn btn-primary mb-2">Submit</button>
+        <button type="submit" class="btn btn-primary mb-2" id="btn-name">Submit</button>
     </form>
     <div class="container text-center" style="display:none">
         <div class="row border m-4 p-4 justify-content-around">
@@ -85,33 +85,19 @@
             <div class="col-sm">
                 <div class="panel panel-primary">
                     <div class="panel-heading" id="accordion">
-                        <h3>Chat</h3>
+                        <h6>Chat</h6>
                     </div>
-                    <div>
-                        <div class="panel-body">
-                            <ul class="chat">
-                                <li class="left clearfix">
-                                    <span class="chat-img pull-left">
-                                    </span>
-                                    <div class="chat-body clearfix">
-                                        <div class="header">
-                                            <strong class="primary-font">Jack Sparrow</strong>
-                                        </div>
-                                        <p>
-                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur bibendum ornare dolor, quis ullamcorper ligula sodales.
-                                        </p>
-                                    </div>
-                                </li>
-                            </ul>
+                    <div class="chatdisplay">
+                        <div class="textdisplay">
+                            <ul class="chat p-0" style="list-style:none"></ul>
                         </div>
-                        <div class="panel-footer">
-                            <div class="input-group">
-                                <input id="btn-input" type="text" class="form-control input-sm" placeholder="Type your message here..." />
-                                <span class="input-group-btn">
-                                    <button class="btn btn-warning btn-sm" id="btn-chat">
-                                        Send</button>
-                                </span>
-                            </div>
+                    </div>
+                    <div class="panel-footer">
+                        <div class="input-group">
+                            <input id="btn-input" type="text" class="form-control input-sm" placeholder="Type your message here..." />
+                            <button class="btn btn-warning btn-sm" id="btn-chat">
+                                Send
+                            </button>
                         </div>
                     </div>
                 </div>
